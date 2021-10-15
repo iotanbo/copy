@@ -254,8 +254,8 @@ func TestOptions_OnDirExists(t *testing.T) {
 
 	opt := Options{}
 
-	opt.OnDirExists = func(src, dest string) DirExistsAction {
-		return Merge
+	opt.OnDestExists = func(src, dest string) DestExistsAction {
+		return OverwriteIntersection
 	}
 	err = Copy("test/data/case10/src", "test/data.copy/case10/dest.1", opt)
 	Expect(t, err).ToBe(nil)
@@ -268,8 +268,8 @@ func TestOptions_OnDirExists(t *testing.T) {
 	Expect(t, err).ToBe(nil)
 	Expect(t, stat).Not().ToBe(nil)
 
-	opt.OnDirExists = func(src, dest string) DirExistsAction {
-		return Replace
+	opt.OnDestExists = func(src, dest string) DestExistsAction {
+		return OverwriteFull
 	}
 	err = Copy("test/data/case10/src", "test/data.copy/case10/dest.2", opt)
 	Expect(t, err).ToBe(nil)
@@ -282,8 +282,8 @@ func TestOptions_OnDirExists(t *testing.T) {
 	Expect(t, os.IsNotExist(err)).ToBe(true)
 	Expect(t, stat).ToBe(nil)
 
-	opt.OnDirExists = func(src, dest string) DirExistsAction {
-		return Untouchable
+	opt.OnDestExists = func(src, dest string) DestExistsAction {
+		return NoOverwrite
 	}
 	err = Copy("test/data/case10/src", "test/data.copy/case10/dest.3", opt)
 	Expect(t, err).ToBe(nil)
@@ -293,7 +293,7 @@ func TestOptions_OnDirExists(t *testing.T) {
 
 	When(t, "PreserveTimes is true with Untouchable", func(t *testing.T) {
 		opt := Options{
-			OnDirExists:   func(src, dest string) DirExistsAction { return Untouchable },
+			OnDestExists:  func(src, dest string) DestExistsAction { return NoOverwrite },
 			PreserveTimes: true,
 		}
 		err = Copy("test/data/case10/src", "test/data.copy/case10/dest.3", opt)

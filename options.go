@@ -8,8 +8,8 @@ type Options struct {
 	// OnSymlink can specify what to do on symlink
 	OnSymlink func(src string) SymlinkAction
 
-	// OnDirExists can specify what to do when there is a directory already existing in destination.
-	OnDirExists func(src, dest string) DirExistsAction
+	// OnDestExists specifies what to do when destination already exists.
+	OnDestExists func(src, dest string) DestExistsAction
 
 	// Skip can specify which files should be skipped
 	Skip func(src string) (bool, error)
@@ -51,16 +51,19 @@ const (
 	Skip
 )
 
-// DirExistsAction represents what to do on dest dir.
-type DirExistsAction int
+// DestExistsAction represents what to do if destination already exists.
+type DestExistsAction int
 
 const (
-	// Merge preserves or overwrites existing files under the dir (default behavior).
-	Merge DirExistsAction = iota
-	// Replace deletes all contents under the dir and copy src files.
-	Replace
-	// Untouchable does nothing for the dir, and leaves it as it is.
-	Untouchable
+	// NoOverwrite does nothing for the dir, and leaves it as it is (default behavior).
+	NoOverwrite DestExistsAction = iota
+	// Merge leaves existing items intact and only copies items that do not exist in dest.
+	Merge
+	// OverwriteIntersection overwrites existing common items but leaves
+	// those unique to destination intact.
+	OverwriteIntersection
+	// OverwriteFull deletes destination and then copies source items.
+	OverwriteFull
 )
 
 // getDefaultOptions provides default options,
@@ -70,7 +73,7 @@ func getDefaultOptions(src, dest string) Options {
 		OnSymlink: func(string) SymlinkAction {
 			return Shallow // Do shallow copy
 		},
-		OnDirExists: nil, // Default behavior is "Merge".
+		OnDestExists: nil, // Default behavior is "Merge".
 		Skip: func(string) (bool, error) {
 			return false, nil // Don't skip
 		},
