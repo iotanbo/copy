@@ -35,7 +35,7 @@ func Copy(src, dest string, opt ...Options) error {
 func switchboard(src, dest string, info os.FileInfo, opt Options) (err error) {
 	switch {
 	case info.Mode()&os.ModeSymlink != 0:
-		err = onsymlink(src, dest, opt)
+		err = onsymlink(src, dest, info, opt)
 	case info.IsDir():
 		err = dcopy(src, dest, info, opt)
 	case info.Mode()&os.ModeNamedPipe != 0:
@@ -65,7 +65,15 @@ func copyNextOrSkip(src, dest string, info os.FileInfo, opt Options) error {
 // with considering existence of parent directory
 // and file permission.
 func fcopy(src, dest string, info os.FileInfo, opt Options) (err error) {
-
+	overwriteMode := opt.OnDestExists(src, dest)
+	if overwriteMode == Merge {
+		// Check if destination exists
+		_, err := os.Lstat(dest)
+		// Skip copying if dest exists
+		if err == nil {
+			return nil
+		}
+	}
 	if err = os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
 		return
 	}
@@ -124,13 +132,13 @@ func fcopy(src, dest string, info os.FileInfo, opt Options) (err error) {
 func dcopy(srcdir, destdir string, info os.FileInfo, opt Options) (err error) {
 
 	_, err = os.Stat(destdir)
-	if err == nil && opt.OnDirExists != nil && destdir != opt.intent.dest {
-		switch opt.OnDirExists(srcdir, destdir) {
-		case Replace:
+	if err == nil && opt.OnDestExists != nil && destdir != opt.intent.dest {
+		switch opt.OnDestExists(srcdir, destdir) {
+		case OverwriteFull:
 			if err := os.RemoveAll(destdir); err != nil {
 				return err
 			}
-		case Untouchable:
+		case NoOverwrite:
 			return nil
 		} // case "Merge" is default behaviour. Go through.
 	} else if err != nil && !os.IsNotExist(err) {
@@ -175,7 +183,7 @@ func dcopy(srcdir, destdir string, info os.FileInfo, opt Options) (err error) {
 	return
 }
 
-func onsymlink(src, dest string, opt Options) error {
+func onsymlink(src, dest string, _info os.FileInfo, opt Options) error {
 	switch opt.OnSymlink(src) {
 	case Shallow:
 		return lcopy(src, dest)
@@ -207,7 +215,7 @@ func lcopy(src, dest string) error {
 }
 
 // fclose ANYHOW closes file,
-// with asiging error raised during Close,
+// with assigning error raised during Close,
 // BUT respecting the error already reported.
 func fclose(f *os.File, reported *error) {
 	if err := f.Close(); *reported == nil {
@@ -216,7 +224,7 @@ func fclose(f *os.File, reported *error) {
 }
 
 // chmod ANYHOW changes file mode,
-// with asiging error raised during Chmod,
+// with assigning error raised during Chmod,
 // BUT respecting the error already reported.
 func chmod(dir string, mode os.FileMode, reported *error) {
 	if err := os.Chmod(dir, mode); *reported == nil {

@@ -11,7 +11,21 @@
 [![Docker Test](https://github.com/otiai10/copy/actions/workflows/docker-test.yml/badge.svg)](https://github.com/otiai10/copy/actions/workflows/docker-test.yml)
 [![Vagrant Test](https://github.com/otiai10/copy/actions/workflows/vagrant-test.yml/badge.svg)](https://github.com/otiai10/copy/actions/workflows/vagrant-test.yml)
 
-`copy` copies directories recursively.
+Copy files and directories with advanced options.
+This is a modified version of https://github.com/otiai10/copy.
+
+Overwrite modes are changed to following:
+```go
+// NoOverwrite does nothing if destination exists (default behavior).
+NoOverwrite DestExistsAction = iota
+// Merge leaves existing items intact and only copies items that do not exist in dest.
+Merge
+// OverwriteIntersection overwrites existing common items but leaves
+// those unique to destination intact.
+OverwriteIntersection
+// OverwriteFull deletes destination and then copies source items.
+OverwriteFull
+```
 
 # Example Usage
 
@@ -28,8 +42,8 @@ type Options struct {
 	// OnSymlink can specify what to do on symlink
 	OnSymlink func(src string) SymlinkAction
 
-	// OnDirExists can specify what to do when there is a directory already existing in destination.
-	OnDirExists func(src, dest string) DirExistsAction
+	// OnDestExists can specify what to do when there is a directory already existing in destination.
+	OnDestExists func(src, dest string) DestExistsAction
 
 	// Skip can specify which files should be skipped
 	Skip func(src string) (bool, error)
@@ -60,18 +74,13 @@ type Options struct {
 
 ```go
 // For example...
-opt := Options{
-	Skip: func(src string) (bool, error) {
-		return strings.HasSuffix(src, ".git"), nil
+import (
+	otiai10 "github.com/iotanbo/copy"
+)
+opt := otiai10.Options{
+	OnDestExists: func(src, dest string) otiai10.DestExistsAction {
+		return otiai10.Merge
 	},
 }
-err := Copy("your/directory", "your/directory.copy", opt)
+err := otiai10.Copy("your/directory", "your/directory.copy", opt)
 ```
-
-# Issues
-
-- https://github.com/otiai10/copy/issues
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fotiai10%2Fcopy.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fotiai10%2Fcopy?ref=badge_large)
