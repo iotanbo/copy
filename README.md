@@ -1,13 +1,6 @@
 # copy
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/otiai10/copy.svg)](https://pkg.go.dev/github.com/otiai10/copy)
-[![Actions Status](https://github.com/otiai10/copy/workflows/Go/badge.svg)](https://github.com/otiai10/copy/actions)
-[![codecov](https://codecov.io/gh/otiai10/copy/branch/main/graph/badge.svg)](https://codecov.io/gh/otiai10/copy)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/otiai10/copy/blob/main/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/otiai10/copy)](https://goreportcard.com/report/github.com/otiai10/copy)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/otiai10/copy?sort=semver)](https://pkg.go.dev/github.com/otiai10/copy)
-
-Copy files and directories with advanced options.
+Go package for advanced copying files and directories.
 This is a modified version of https://github.com/otiai10/copy.
 
 Overwrite modes are changed to following:
@@ -64,12 +57,13 @@ type Options struct {
 ```go
 // For example...
 import (
-	otiai10 "github.com/iotanbo/copy"
+	// go get github.com/iotanbo/copy@adv1_6_0
+	advcopy "github.com/iotanbo/copy"
 )
-opt := otiai10.Options{
-	OnDestExists: func(src, dest string) otiai10.DestExistsAction {
-		return otiai10.Merge
+opt := advcopy.Options{
+	OnDestExists: func(src, dest string) advcopy.DestExistsAction {
+		return advcopy.Merge
 	},
 }
-err := otiai10.Copy("your/directory", "your/directory.copy", opt)
+err := advcopy.Copy("your/directory", "your/directory.copy", opt)
 ```

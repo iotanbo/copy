@@ -39,7 +39,7 @@ func switchboard(src, dest string, info os.FileInfo, opt Options) (err error) {
 	case info.IsDir():
 		err = dcopy(src, dest, info, opt)
 	case info.Mode()&os.ModeNamedPipe != 0:
-		err = pcopy(dest, info)
+		err = pcopy(src, dest, info, opt)
 	default:
 		err = fcopy(src, dest, info, opt)
 	}
@@ -69,8 +69,9 @@ func fcopy(src, dest string, info os.FileInfo, opt Options) (err error) {
 	if overwriteMode == Merge {
 		// Check if destination exists
 		_, err := os.Lstat(dest)
-		// Skip copying if dest exists
-		if err == nil {
+		exists := err == nil
+		// Skip copying file if dest exists
+		if exists {
 			return nil
 		}
 	}
@@ -169,9 +170,28 @@ func dcopy(srcdir, destdir string, info os.FileInfo, opt Options) (err error) {
 }
 
 func onsymlink(src, dest string, _info os.FileInfo, opt Options) error {
+	overwriteMode := opt.OnDestExists(src, dest)
+	if overwriteMode == Merge || overwriteMode == OverwriteIntersection {
+		// Check if destination exists
+		_, err := os.Lstat(dest)
+		exists := err == nil
+		if overwriteMode == Merge {
+			// Skip copying if dest exists
+			if exists {
+				return nil
+			}
+		} else { // OverwriteIntersection
+			// Remove existing fs item if exists
+			if exists {
+				if err := os.Remove(dest); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	switch opt.OnSymlink(src) {
 	case Shallow:
-		return lcopy(src, dest)
+		return lcopy(src, dest, opt)
 	case Deep:
 		orig, err := os.Readlink(src)
 		if err != nil {
@@ -191,7 +211,7 @@ func onsymlink(src, dest string, _info os.FileInfo, opt Options) error {
 
 // lcopy is for a symlink,
 // with just creating a new symlink by replicating src symlink.
-func lcopy(src, dest string) error {
+func lcopy(src, dest string, _opt Options) error {
 	src, err := os.Readlink(src)
 	if err != nil {
 		return err
