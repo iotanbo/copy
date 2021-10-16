@@ -1,4 +1,4 @@
-module github.com/iotanbo/copy
+module github.com/iotanbo/copy/v100
 
 go 1.14
 
