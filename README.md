@@ -75,12 +75,13 @@ type Options struct {
 ```go
 // For example...
 import (
-	otiai10 "github.com/iotanbo/copy"
+	// go get github.com/iotanbo/copy@adv1_6_0
+	advcopy "github.com/iotanbo/copy"
 )
-opt := otiai10.Options{
-	OnDestExists: func(src, dest string) otiai10.DestExistsAction {
-		return otiai10.Merge
+opt := advcopy.Options{
+	OnDestExists: func(src, dest string) advcopy.DestExistsAction {
+		return advcopy.Merge
 	},
 }
-err := otiai10.Copy("your/directory", "your/directory.copy", opt)
+err := advcopy.Copy("your/directory", "your/directory.copy", opt)
 ```
