@@ -57,7 +57,7 @@ type Options struct {
 ```go
 // For example...
 import (
-	// go get github.com/iotanbo/copy@v101.6.0
+	// go get github.com/iotanbo/copy@v1.6.0-advcopy
 	advcopy "github.com/iotanbo/copy"
 )
 opt := advcopy.Options{
