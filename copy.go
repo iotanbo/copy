@@ -65,7 +65,10 @@ func copyNextOrSkip(src, dest string, info os.FileInfo, opt Options) error {
 // with considering existence of parent directory
 // and file permission.
 func fcopy(src, dest string, info os.FileInfo, opt Options) (err error) {
-	overwriteMode := opt.OnDestExists(src, dest)
+	overwriteMode := NoOverwrite
+	if opt.OnDestExists != nil {
+		overwriteMode = opt.OnDestExists(src, dest)
+	}
 	if overwriteMode == Merge {
 		// Check if destination exists
 		_, err := os.Lstat(dest)
@@ -185,7 +188,10 @@ func dcopy(srcdir, destdir string, info os.FileInfo, opt Options) (err error) {
 }
 
 func onsymlink(src, dest string, _info os.FileInfo, opt Options) error {
-	overwriteMode := opt.OnDestExists(src, dest)
+	overwriteMode := NoOverwrite
+	if opt.OnDestExists != nil {
+		overwriteMode = opt.OnDestExists(src, dest)
+	}
 	if overwriteMode == Merge || overwriteMode == OverwriteIntersection {
 		// Check if destination exists
 		_, err := os.Lstat(dest)

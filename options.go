@@ -76,7 +76,9 @@ func getDefaultOptions(src, dest string) Options {
 		OnSymlink: func(string) SymlinkAction {
 			return Shallow // Do shallow copy
 		},
-		OnDestExists: nil, // Default behavior is "Merge".
+		OnDestExists: func(src, dest string) DestExistsAction {
+			return NoOverwrite
+		},
 		Skip: func(string) (bool, error) {
 			return false, nil // Don't skip
 		},
